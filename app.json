@@ -18,9 +18,25 @@
       }
     },
     "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/favicon.png",
+      "manifest": {
+        "name": "Your App Name",
+        "short_name": "YourApp",
+        "start_url": ".",
+        "display": "standalone",
+        "background_color": "#ffffff",
+        "theme_color": "#000000",
+        "icons": [
+          {
+            "src": "./assets/images/react-logo.png",
+            "sizes": "100x100",
+            "type": "image/png"
+          }
+        ]
+      },
+      "serviceWorker": {
+        "register": true
+      }
     },
     "plugins": [
       "expo-router",
