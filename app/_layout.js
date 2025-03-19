@@ -126,6 +126,7 @@ export default function Layout() {
       }}>
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Scout" component={ScoutScreen}/>
+      <Drawer.Screen name="Scout" component={AdminScreen}/>
       </Drawer.Navigator>
       {updateAvailable && (<Text style={styles.updateBanner} onPress={handleUpdate}>Update</Text>)}
       </NavigationContainer>

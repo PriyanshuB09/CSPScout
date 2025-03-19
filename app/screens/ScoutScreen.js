@@ -171,8 +171,8 @@ const Setup = () => {
                 [styles.startingPosition, (startingPosition != 1) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]
                 } onPress={() => {
                 setStartingPosition(1);
-                g_startingPosition = 'far';
-              }}><Text style={styles.startingPosition}>Far</Text></TouchableOpacity>
+                g_startingPosition = 'prcsr';
+              }}><Text style={styles.startingPosition}>Prcsr</Text></TouchableOpacity>
               <TouchableOpacity style={
                 [styles.startingPosition, (startingPosition != 2) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]
                 } onPress={() => {
@@ -183,8 +183,8 @@ const Setup = () => {
                 [styles.startingPosition, (startingPosition != 3) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]
                 } onPress={() => {
                 setStartingPosition(3);
-                g_startingPosition = 'near';
-              }}><Text style={styles.startingPosition}>Near</Text></TouchableOpacity>
+                g_startingPosition = 'open';
+              }}><Text style={styles.startingPosition}>Open</Text></TouchableOpacity>
               <TouchableOpacity style={
                 [styles.startingPosition, (startingPosition != 4) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]
                 } onPress={() => {
