@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import firebase from "firebase/compat/app";
 import "firebase/compat/firestore";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -19,7 +20,7 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-db.enablePersistence()
+db.enablePersistence({ synchronizeTabs: true, experimentalForceOwningTab: false })
   .then(() => console.log("Persistence enabled!"))
   .catch((err) => console.error("Failed:", err));
 
@@ -215,6 +216,7 @@ class CachedListener {
      */
     open(collectionName) {
         this.collection = collectionName;
+        console.log('open')
         return this;
     }
     /**
@@ -255,6 +257,7 @@ class CachedListener {
      */
     find(attribute, condition, value) {
         this.queryFilters.push({attribute, condition, value});
+        console.log('find')
         return this;
     }
 
@@ -263,10 +266,10 @@ class CachedListener {
      * @param {integer} number 
      * @returns An updated Cached Listener
      */
-    limit(number) {
-        this.limit = number;
-        return this;
-    }
+    // limit(number) {
+    //     this.limit = number;
+    //     return this;
+    // }
 
     /**
      * Returns all document references, asynchronously.
@@ -282,8 +285,6 @@ class CachedListener {
         this.orders.forEach(order => {
             object = object.orderBy(order.attribute, order.orderDir);
         });
-
-        if (this.limit !== null) object = object.limit(this.limit);
 
         let querySnapshot = await object.get();
 
@@ -314,8 +315,6 @@ class CachedListener {
             object = object.orderBy(order.attribute, order.orderDir);
         });
 
-        if (this.limit !== null) object = object.limit(this.limit);
-
         let querySnapshot = await object.get();
 
         querySnapshot.forEach(doc => {
@@ -340,18 +339,24 @@ class CachedListener {
 
         this.queryFilters.forEach(filter => {
             object = object.where(filter.attribute, filter.condition, filter.value);
+            console.log('queryFilter')
+            console.log(filter);
         });
 
         this.orders.forEach(order => {
             object = object.orderBy(order.attribute, order.orderDir);
         });
 
-        if (this.limit !== null) object = object.limit(this.limit);
+        // if (this.limit !== null) object = object.limit(this.limit);
 
+        console.log(object);
+        console.log(await object.get());
         let querySnapshot = await object.get();
+        console.log(querySnapshot.empty);
 
         querySnapshot.forEach(doc => {
             array.push(doc.data());
+            console.log('array push');
         });
 
         this.referencedDocs.forEach(doc => {
@@ -364,6 +369,7 @@ class CachedListener {
         });
 
         if (attributesList.length == 0) {
+            console.log('working');
             return array;
         } else {
             let revisedArray = [];

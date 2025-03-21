@@ -11,6 +11,8 @@ import { registerServiceWorker, checkForUpdate } from './serviceWorkerRegistrati
 
 import HomeScreen from './screens/HomeScreen';
 import ScoutScreen from './screens/ScoutScreen';
+import AdminScreen from './screens/AdminScreen';
+import PitScreen from './screens/PitScreen';
 
 const Drawer = createDrawerNavigator();
 
@@ -126,7 +128,8 @@ export default function Layout() {
       }}>
       <Drawer.Screen name="Home" component={HomeScreen} />
       <Drawer.Screen name="Scout" component={ScoutScreen}/>
-      <Drawer.Screen name="Scout" component={AdminScreen}/>
+      <Drawer.Screen name="Pit Scout" component={PitScreen}/>
+      <Drawer.Screen name="Admin" component={AdminScreen}/>
       </Drawer.Navigator>
       {updateAvailable && (<Text style={styles.updateBanner} onPress={handleUpdate}>Update</Text>)}
       </NavigationContainer>

@@ -1,9 +1,9 @@
 // service-worker.js
-const CACHE_NAME = 'cspscout-cache-v38';
+const CACHE_NAME = 'cspscout-cache-v112';
 const urlsToCache = [
   '/',
   '/index.html',
-  '../assets/images/react-logo.png'  // Add your app assets here
+  './apple-touch-icon.png'  // Add your app assets here
 ];
 
 // Install event: Cache necessary files

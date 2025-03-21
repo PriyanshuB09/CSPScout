@@ -2,6 +2,7 @@ import { Keyboard, Text, SafeAreaView, StyleSheet, View, Pressable, Button, Touc
 import { TextInput } from "react-native-web";
 
 import { useEffect, useState } from 'react';
+import EventEmitter from 'events';
 
 // import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationIndependentTree } from '@react-navigation/native';
@@ -10,6 +11,9 @@ import { createMaterialTopTabNavigator } from '@react-navigation/material-top-ta
 import * as FIREBASE from '../../firebaseConfig';
 
 const Tab = createMaterialTopTabNavigator();
+const eventEmitter = new EventEmitter();
+
+const eventWeAreAt = '2025gagai';
 
 let g_scouterName = '';
 let g_startingPosition = '';
@@ -31,6 +35,7 @@ let g_autoL3ReefMiss = 0;
 let g_autoL4ReefMiss = 0;
 
 let g_autoBarge = 0;
+let g_autoBargeMiss = 0;
 let g_autoProcessor = 0;
 
 let g_teleL1ReefMade = 0;
@@ -44,19 +49,85 @@ let g_teleL3ReefMiss = 0;
 let g_teleL4ReefMiss = 0;
 
 let g_teleBarge = 0;
+let g_teleBargeMiss = 0;
 let g_teleProcessor = 0;
 let g_telePark = '';
 
 let g_notes = '';
 
 const finalSubmit = () => {
-  let dataObject = {
-    g_allianceColor, g_alliancePosition, g_autoBarge, g_autoL1ReefMade, g_autoL1ReefMiss, g_autoL2ReefMade, g_autoL2ReefMiss, g_autoL3ReefMade, g_autoL3ReefMiss, g_autoL4ReefMade, g_autoL4ReefMiss, g_autoMobility, g_autoProcessor, g_matchNumber, g_notes, g_preload, g_scouterName, g_startingPosition, g_teamNumber, g_teleBarge, g_teleL1ReefMade, g_teleL1ReefMiss, g_teleL2ReefMade, g_teleL2ReefMiss, g_teleL3ReefMade, g_teleL3ReefMiss, g_teleL4ReefMade, g_teleL4ReefMiss, g_telePark, g_teleProcessor
+
+  if (g_scouterName == '' || g_allianceColor == '' || g_alliancePosition == '' || g_teamNumber == '' || g_matchNumber == '') {
+    window.alert('[Error] Must have required fields in setup filled out for entry.');
+    return;
+  }
+
+  let dataObject = { 
+    g_allianceColor, g_alliancePosition, g_autoBarge, g_autoL1ReefMade, g_autoL1ReefMiss, g_autoL2ReefMade, g_autoL2ReefMiss, g_autoL3ReefMade, g_autoL3ReefMiss, g_autoL4ReefMade, g_autoL4ReefMiss, g_autoMobility, g_autoProcessor, g_matchNumber, g_notes, g_preload, g_scouterName, g_startingPosition, g_teamNumber, g_teleBarge, g_teleL1ReefMade, g_teleL1ReefMiss, g_teleL2ReefMade, g_teleL2ReefMiss, g_teleL3ReefMade, g_teleL3ReefMiss, g_teleL4ReefMade, g_teleL4ReefMiss, g_telePark, g_teleProcessor, g_teleBargeMiss, g_autoBargeMiss
   }
   console.log(dataObject);
-  FIREBASE.addEmitter().open('test').add(dataObject).commit().then(() => {
-    // useEffect(() => alert('good'), []);
+  FIREBASE.addEmitter().open('matches').add(dataObject).commit().then(() => {
+    window.alert('[Success] Entry Recorded, head back to Setup for next match.');
+    {
+      g_scouterName = '';
+      g_startingPosition = '';
+      g_allianceColor = '';
+      g_alliancePosition = '';
+      g_teamNumber = '';
+      g_preload = '';
+      g_matchNumber = '';
+    
+      g_autoMobility = '';
+      g_autoL1ReefMade = 0;
+      g_autoL2ReefMade = 0;
+      g_autoL3ReefMade = 0;
+      g_autoL4ReefMade = 0;
+    
+      g_autoL1ReefMiss = 0;
+      g_autoL2ReefMiss = 0;
+      g_autoL3ReefMiss = 0;
+      g_autoL4ReefMiss = 0;
+    
+      g_autoBarge = 0;
+      g_autoBargeMiss = 0;
+      g_autoProcessor = 0;
+    
+      g_teleL1ReefMade = 0;
+      g_teleL2ReefMade = 0;
+      g_teleL3ReefMade = 0;
+      g_teleL4ReefMade = 0;
+    
+      g_teleL1ReefMiss = 0;
+      g_teleL2ReefMiss = 0;
+      g_teleL3ReefMiss = 0;
+      g_teleL4ReefMiss = 0;
+    
+      g_teleBarge = 0;
+      g_teleBargeMiss = 0;
+      g_teleProcessor = 0;
+      g_telePark = '';
+      g_notes = '';
+      }
+    eventEmitter.emit('submit');
   });
+}
+
+const updateTeamNumber = (allianceColor, alliancePosition, matchNumber, setTeamNumber) => {
+  console.log('[Setup] Team number being updated.');
+  if (g_allianceColor == '' || g_alliancePosition == '' || g_matchNumber == '') {
+    console.log('Data not filled out');
+    return;
+  }
+  
+  FIREBASE.addListener().open('schedule').find('event', '==', eventWeAreAt).find('qual', '==', parseInt(matchNumber)).return().then(matches => {
+    console.log(matches);
+    if (matches[0]) {
+      console.log('[Setup] Successfully updated.');
+      let selectedMatch = matches[0];
+      let teamNumber_ = selectedMatch[g_allianceColor][alliancePosition - 1];
+      setTeamNumber(teamNumber_);
+    }
+});
 }
 
 
@@ -123,6 +194,21 @@ const Setup = () => {
   const [alliancePosition, setAlliancePosition] = useState(0);
   const [teamNumber, setTeamNumber] = useState('');
   const [preload, setPreload] = useState(0);
+
+  useEffect(() => {
+    const resetAll = () => {
+      console.log('[Setup] Resetting All Data');
+      setScouterName(''); 
+      setMatchNumber('');
+      setAllianceColor(null);
+      setStartingPosition(0);
+      setAlliancePosition(0);
+      setTeamNumber('');
+      setPreload(0);
+    }
+
+    eventEmitter.on("submit", resetAll);
+  }, []);
 
   return (
       <ScrollView style={styles.setupDiv}>
@@ -239,9 +325,10 @@ const Setup = () => {
                   width: '50%',
                   height: '100%',
                   textAlign: 'center',
-              }} placeholder="#" value={matchNumber} keyboardType="numeric" onChangeText={(text) => {
+              }} placeholder="#" value={matchNumber} keyboardType="numeric" inputType="numeric" onChangeText={(text) => {
                 setMatchNumber(text);
-                g_matchNumber = text;
+                g_matchNumber = text+"";
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
                 }} />
               </View>
               <View style={{
@@ -272,6 +359,7 @@ const Setup = () => {
                 }, (allianceColor) ? {backgroundColor: "#7e3631"} : {backgroundColor: "#b44d45"}]} onPress={() => {
                   setAllianceColor(false);
                   g_allianceColor = 'red';
+                  updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
                   }}><Text style={{
                 color: 'white',
                 height: '100%',
@@ -294,6 +382,7 @@ const Setup = () => {
                 }, (!allianceColor) ? {backgroundColor: "#2e3978"} : {backgroundColor: "#4555b4"}]} onPress={() => {
                   setAllianceColor(true);
                   g_allianceColor = 'blue';
+                  updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
                   }}><Text style={{
                 color: 'white',
                 height: '100%',
@@ -320,6 +409,7 @@ const Setup = () => {
               }, (alliancePosition != 1) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]} onPress={() => {
                 setAlliancePosition(1);
                 g_alliancePosition = '1';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
               }}><Text style={{
                 textAlign: 'center',
                 alignContent: 'center',
@@ -334,6 +424,7 @@ const Setup = () => {
               }, (alliancePosition != 2) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]} onPress={() => {
                 setAlliancePosition(2);
                 g_alliancePosition = '2';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
               }}><Text style={{
                 textAlign: 'center',
                 alignContent: 'center',
@@ -348,6 +439,7 @@ const Setup = () => {
               }, (alliancePosition != 3) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]} onPress={() => {
                 setAlliancePosition(3);
                 g_alliancePosition = '3';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
               }}><Text style={{
                 textAlign: 'center',
                 alignContent: 'center',
@@ -387,9 +479,9 @@ const Setup = () => {
                   width: '50%',
                   height: '100%',
                   textAlign: 'center',
-              }} placeholder="#" value={teamNumber} keyboardType="numeric" onChangeText={(text) => {
+              }} placeholder="#" value={teamNumber} keyboardType="numeric" inputType="numeric" onChangeText={(text) => {
                 setTeamNumber(text);
-                g_teamNumber = text;
+                g_teamNumber = text+"";
                 }} />
               </View>
               <View style={{
@@ -477,7 +569,28 @@ const [autoL4ReefMade, setAutoL4ReefMade] = useState(0);
 const [autoL4ReefMiss, setAutoL4ReefMiss] = useState(0);
 
 const [autoBarge, setAutoBarge] = useState(0);
+const [autoBargeMiss, setAutoBargeMiss] = useState(0);
 const [autoProcessor, setAutoProcessor] = useState(0);
+
+useEffect(() => {
+  const resetAll = () => {
+    console.log('[Auto] Resetting All Data');
+    setAutoMobility(0);
+    setAutoL1ReefMade(0);
+    setAutoL1ReefMiss(0);
+    setAutoL2ReefMade(0);
+    setAutoL2ReefMiss(0);
+    setAutoL3ReefMade(0);
+    setAutoL3ReefMiss(0);
+    setAutoL4ReefMade(0);
+    setAutoL4ReefMiss(0);
+    setAutoBarge(0);
+    setAutoBargeMiss(0);
+    setAutoProcessor(0);
+  }
+
+  eventEmitter.on("submit", resetAll);
+}, []);
 
 return (
   <ScrollView style={styles.autoDiv}>
@@ -772,7 +885,8 @@ return (
             }}><Text style={scoring.autoProcessorDown}>-</Text></TouchableOpacity>
         </View>
       </View>
-      <View style={scoring.autoBarge}>
+      <View style={[scoring.autoBarge, {borderBottomLeftRadius: 0,
+  borderBottomRightRadius: 0}]}>
         <Text style={scoring.autoSpan}>Barge</Text>
         <View style={scoring.autoBargeGroup}>
           <Text style={scoring.autoBargeNumber}>{autoBarge}</Text>
@@ -783,6 +897,21 @@ return (
           <TouchableOpacity style={{width: '35%'}} onPress={() => {
             setAutoBarge(autoBarge - 1);
             g_autoBarge--;
+            }}><Text style={scoring.autoBargeDown}>-</Text></TouchableOpacity>
+        </View>
+      </View>
+      <View style={[scoring.autoBarge, {borderBottomLeftRadius: 15,
+  borderBottomRightRadius: 15}]}>
+        <Text style={scoring.autoSpan}>Brg Miss</Text>
+        <View style={scoring.autoBargeGroup}>
+          <Text style={scoring.autoBargeNumber}>{autoBargeMiss}</Text>
+          <TouchableOpacity style={{width: '35%'}} onPress={() => {
+            setAutoBargeMiss(autoBargeMiss + 1);
+            g_autoBargeMiss++;
+            }}><Text style={scoring.autoBargeUp}>+</Text></TouchableOpacity>
+          <TouchableOpacity style={{width: '35%'}} onPress={() => {
+            setAutoBargeMiss(autoBargeMiss - 1);
+            g_autoBargeMiss--;
             }}><Text style={scoring.autoBargeDown}>-</Text></TouchableOpacity>
         </View>
       </View>
@@ -956,10 +1085,6 @@ autoBarge: {
   flexWrap: 'wrap',
   justifyContent: 'space-evenly',
   backgroundColor: '#a8a8a8',
-  borderTopLeftRadius: 0,
-  borderTopRightRadius: 0,
-  borderBottomLeftRadius: 15,
-  borderBottomRightRadius: 15,
 },
 
 autoProcessor: {
@@ -985,7 +1110,7 @@ autoBargeGroup: {
   display: 'flex',
   flexDirection: 'row',
   flexWrap: 'no-wrap',
-  alignItems: 'start',
+  alignItems: 'center',
 },
 
 autoProcessorGroup: {
@@ -994,7 +1119,7 @@ autoProcessorGroup: {
   display: 'flex',
   flexDirection: 'row',
   flexWrap: 'no-wrap',
-  alignItems: 'end',
+  alignItems: 'center',
 },
 
 autoSpan: {
@@ -1010,6 +1135,7 @@ autoProcessorNumber: {
   alignContent: 'center',
   textAlign: 'center',
   borderTopLeftRadius: 10,
+  borderBottomLeftRadius: 10,
 },
 
 autoBargeNumber: {
@@ -1019,6 +1145,7 @@ autoBargeNumber: {
   alignContent: 'center',
   textAlign: 'center',
   borderBottomLeftRadius: 10,
+  borderTopLeftRadius: 10,
 },
 
 autoProcessorUp: {
@@ -1036,6 +1163,7 @@ autoProcessorDown: {
   alignContent: 'center',
   textAlign: 'center',
   borderTopRightRadius: 10,
+  borderBottomRightRadius: 10,
 },
 
 autoBargeUp: {
@@ -1053,6 +1181,7 @@ autoBargeDown: {
   alignContent: 'center',
   textAlign: 'center',
   borderBottomRightRadius: 10,
+  borderTopRightRadius: 10,
 },
 
 telePark: {
@@ -1089,13 +1218,19 @@ otherPark: {
 },
 
 otherParkDiv: {
-  backgroundColor: 'lightgrey',
+  backgroundColor: 'blue',
   height: '2.5em',
-  width: '4em',
+  width: '22.5%',
   alignContent: 'center',
   textAlign: 'center',
   borderRadius: '15px',
   color: 'black',
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+
+otherParkDivDiv: {
+  borderRadius: '15px'
 },
 
 otherParkLack: {
@@ -1111,7 +1246,6 @@ otherParkLack: {
 });
 
 const Tele = () => {
-const [teleMobility, setTeleMobility] = useState(0);
 const [teleL1ReefMade, setTeleL1ReefMade] = useState(0);
 const [teleL1ReefMiss, setTeleL1ReefMiss] = useState(0);
 
@@ -1125,9 +1259,30 @@ const [teleL4ReefMade, setTeleL4ReefMade] = useState(0);
 const [teleL4ReefMiss, setTeleL4ReefMiss] = useState(0);
 
 const [teleBarge, setTeleBarge] = useState(0);
+const [teleBargeMiss, setTeleBargeMiss] = useState(0);
 const [teleProcessor, setTeleProcessor] = useState(0);
 
 const [telePark, setTelePark] = useState(0);
+
+useEffect(() => {
+  const resetAll = () => {
+    console.log('[Tele] Resetting All Data');
+    setTelePark(0);
+    setTeleL1ReefMade(0);
+    setTeleL1ReefMiss(0);
+    setTeleL2ReefMade(0);
+    setTeleL2ReefMiss(0);
+    setTeleL3ReefMade(0);
+    setTeleL3ReefMiss(0);
+    setTeleL4ReefMade(0);
+    setTeleL4ReefMiss(0);
+    setTeleBarge(0);
+    setTeleBargeMiss(0);
+    setTeleProcessor(0);
+  }
+
+  eventEmitter.on("submit", resetAll);
+}, []);
 
 return (
   <ScrollView style={styles.teleDiv}>
@@ -1352,7 +1507,8 @@ return (
             }}><Text style={scoring.autoProcessorDown}>-</Text></TouchableOpacity>
         </View>
       </View>
-      <View style={scoring.autoBarge}>
+      <View style={[scoring.autoBarge, {borderBottomLeftRadius: 0,
+  borderBottomRightRadius: 0}]}>
         <Text style={scoring.autoSpan}>Barge</Text>
         <View style={scoring.autoBargeGroup}>
           <Text style={scoring.autoBargeNumber}>{teleBarge}</Text>
@@ -1366,23 +1522,41 @@ return (
             }}><Text style={scoring.autoBargeDown}>-</Text></TouchableOpacity>
         </View>
       </View>
+      <View style={[scoring.autoBarge, {borderBottomLeftRadius: 15,
+  borderBottomRightRadius: 15}]}>
+        <Text style={scoring.autoSpan}>Brg Miss</Text>
+        <View style={scoring.autoBargeGroup}>
+          <Text style={scoring.autoBargeNumber}>{teleBargeMiss}</Text>
+          <TouchableOpacity style={{width: '35%'}} onPress={() => {
+            setTeleBargeMiss(teleBargeMiss + 1);
+            g_teleBarge++;
+            }}><Text style={scoring.autoBargeUp}>+</Text></TouchableOpacity>
+          <TouchableOpacity style={{width: '35%'}} onPress={() => {
+            setTeleBargeMiss(teleBargeMiss - 1);
+            g_teleBargeMiss--;
+            }}><Text style={scoring.autoBargeDown}>-</Text></TouchableOpacity>
+        </View>
+      </View>
     </View>
 
     <View style={scoring.telePark}>
       <View style={scoring.otherPark}>
-        <Text style={[{width: '5em'}, scoring.otherParkLack]}>Park: </Text>
         <TouchableOpacity style={[scoring.otherParkDiv, (telePark != 1) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]} onPress={() => {
           setTelePark(1);
           g_telePark = 'none';
-        }}><Text style={[scoring.otherParkDiv, (telePark != 1) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>None</Text></TouchableOpacity>
+        }}><Text style={[scoring.otherParkDivDiv, (telePark != 1) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>None</Text></TouchableOpacity>
         <TouchableOpacity style={[scoring.otherParkDiv, (telePark != 2) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]} onPress={() => {
           setTelePark(2);
           g_telePark = 'ground';
-        }}><Text style={[scoring.otherParkDiv, (telePark != 2) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>Ground</Text></TouchableOpacity>
+        }}><Text style={[scoring.otherParkDivDiv, (telePark != 2) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>Ground</Text></TouchableOpacity>
         <TouchableOpacity style={[scoring.otherParkDiv, (telePark != 3) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]} onPress={() => {
           setTelePark(3);
-          g_telePark = 'climb';
-        }}><Text style={[scoring.otherParkDiv, (telePark != 3) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>Climb</Text></TouchableOpacity>
+          g_telePark = 'deep';
+        }}><Text style={[scoring.otherParkDivDiv, (telePark != 3) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>Deep</Text></TouchableOpacity>
+        <TouchableOpacity style={[scoring.otherParkDiv, (telePark != 4) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]} onPress={() => {
+          setTelePark(4);
+          g_telePark = 'shallow';
+        }}><Text style={[scoring.otherParkDivDiv, (telePark != 4) ? {backgroundColor: 'lightgrey'} : {backgroundColor: 'seagreen'}]}>Shlw</Text></TouchableOpacity>
       </View>
     </View>
   </ScrollView>
@@ -1392,6 +1566,14 @@ return (
 const Notes = () => {
 const [notes, setNotes] = useState('');
 
+useEffect(() => {
+  const resetAll = () => {
+    console.log('[Notes] Resetting All Data');
+    setNotes('');
+  }
+
+  eventEmitter.on("submit", resetAll);
+}, []);
 return (
   <ScrollView style={styles.notesDiv}>
     <TextInput style={{
