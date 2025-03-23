@@ -127,8 +127,8 @@ export default function Layout() {
         // headerLeft: undefined,
       }}>
       <Drawer.Screen name="Home" component={HomeScreen} />
-      <Drawer.Screen name="Scout" component={ScoutScreen}/>
       <Drawer.Screen name="Pit Scout" component={PitScreen}/>
+      <Drawer.Screen name="Scout" component={ScoutScreen}/>
       <Drawer.Screen name="Admin" component={AdminScreen}/>
       </Drawer.Navigator>
       {updateAvailable && (<Text style={styles.updateBanner} onPress={handleUpdate}>Update</Text>)}

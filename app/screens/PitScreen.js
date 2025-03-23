@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const g_eventWeAreAt = '2025gagai';
+const g_eventWeAreAt = '2025gasta';
 
 let k_teamNumber = '';
 let k_drivetrain = '';
@@ -357,9 +357,9 @@ const PitScreen = () => {
         <TextInput style={[styles.teamNumberInput, {width: '100%', height: '100%'}]} placeholder="Extra Notes" value={notes} onChangeText={text => setNotes(text)} multiline={true}/>
       </View>
 
-      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setReefScore, setAlgaeScore, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Reset</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Reset</Text></TouchableOpacity>
 
-      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => submitPS(teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setReefScore, setAlgaeScore, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Submit</Text></TouchableOpacity>
+      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => submitPS(teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Submit</Text></TouchableOpacity>
       
     </ScrollView>
   );

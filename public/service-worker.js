@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'cspscout-cache-v112';
+const CACHE_NAME = 'cspscout-cache-v124';
 const urlsToCache = [
   '/',
   '/index.html',

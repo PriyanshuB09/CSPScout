@@ -8,14 +8,16 @@ import { useEffect, useState } from 'react';
 // import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 
 import * as FIREBASE from '../../firebaseConfig';
-import requestTBASchedule from '../TBARequest';
+import {requestTBASchedule, requestTBATeams} from '../TBARequest';
 
 let g_matchSchedule = [];
+let g_teamsPresent = [];
 let g_eventName = '';
 
 const AdminScreen = () => {
     const [eventName, setEventName] = useState('');
     const [matchSchedule, setMatchSchedule] = useState([]);
+    const [teamsPresent, setTeamsPresent] = useState([]);
 
     const [passcode, setPasscode] = useState('');
 
@@ -40,7 +42,9 @@ const AdminScreen = () => {
             <TouchableOpacity onPress={() => {
                 getSchedule(eventName, setMatchSchedule).then(() => window.alert('[Match Schedule] Updated'));
             }}><Text>Update Schedule</Text></TouchableOpacity>
-            <TouchableOpacity><Text>Update Teams</Text></TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                getTeams(eventName, setTeamsPresent).then(() => window.alert('[Event Teams] Updated'));
+            }}><Text>Update Teams</Text></TouchableOpacity>
           </View>) : (<Text>Incorrect</Text>)}
         </ScrollView>
       );
@@ -58,6 +62,19 @@ const getSchedule = async (eventName, setMatchSchedule) => {
         .find("event", "==", eventName).delete().commit().then(() => {
             console.log(3)
             data.forEach((match) => FIREBASE.addEmitter().open('schedule').add(match).commit());
+        });
+    });
+}
+
+const getTeams = async (eventName, setTeamsPresent) => {
+    console.log('eventName', eventName);
+    requestTBATeams(eventName).then((data) => {
+        g_teamsPresent = data;
+        setTeamsPresent(data);
+        console.log('teams', data);
+        FIREBASE.addEmitter().open('teams')
+        .find('event', '==', eventName).delete().commit().then(() => {
+            data.forEach((team) => FIREBASE.addEmitter().open('teams').add(team).commit());
         });
     });
 }

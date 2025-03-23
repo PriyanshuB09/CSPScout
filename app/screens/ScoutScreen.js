@@ -13,7 +13,7 @@ import * as FIREBASE from '../../firebaseConfig';
 const Tab = createMaterialTopTabNavigator();
 const eventEmitter = new EventEmitter();
 
-const eventWeAreAt = '2025gagai';
+const eventWeAreAt = '2025gasta';
 
 let g_scouterName = '';
 let g_startingPosition = '';
@@ -57,10 +57,10 @@ let g_notes = '';
 
 const finalSubmit = () => {
 
-  if (g_scouterName == '' || g_allianceColor == '' || g_alliancePosition == '' || g_teamNumber == '' || g_matchNumber == '') {
-    window.alert('[Error] Must have required fields in setup filled out for entry.');
-    return;
-  }
+  // if (g_scouterName == '' || g_allianceColor == '' || g_alliancePosition == '' || g_teamNumber == '' || g_matchNumber == '') {
+  //   window.alert('[Error] Must have required fields in setup filled out for entry.');
+  //   return;
+  // }
 
   let dataObject = { 
     g_allianceColor, g_alliancePosition, g_autoBarge, g_autoL1ReefMade, g_autoL1ReefMiss, g_autoL2ReefMade, g_autoL2ReefMiss, g_autoL3ReefMade, g_autoL3ReefMiss, g_autoL4ReefMade, g_autoL4ReefMiss, g_autoMobility, g_autoProcessor, g_matchNumber, g_notes, g_preload, g_scouterName, g_startingPosition, g_teamNumber, g_teleBarge, g_teleL1ReefMade, g_teleL1ReefMiss, g_teleL2ReefMade, g_teleL2ReefMiss, g_teleL3ReefMade, g_teleL3ReefMiss, g_teleL4ReefMade, g_teleL4ReefMiss, g_telePark, g_teleProcessor, g_teleBargeMiss, g_autoBargeMiss
@@ -124,8 +124,9 @@ const updateTeamNumber = (allianceColor, alliancePosition, matchNumber, setTeamN
     if (matches[0]) {
       console.log('[Setup] Successfully updated.');
       let selectedMatch = matches[0];
-      let teamNumber_ = selectedMatch[g_allianceColor][alliancePosition - 1];
+      let teamNumber_ = selectedMatch[g_allianceColor][parseInt(alliancePosition) - 1];
       setTeamNumber(teamNumber_);
+      g_teamNumber = teamNumber_;
     }
 });
 }
