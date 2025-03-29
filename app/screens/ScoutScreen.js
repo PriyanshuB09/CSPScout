@@ -69,7 +69,7 @@ const finalSubmit = () => {
   FIREBASE.addEmitter().open('matches').add(dataObject).commit().then(() => {
     window.alert('[Success] Entry Recorded, head back to Setup for next match.');
     {
-      g_scouterName = '';
+      // g_scouterName = '';
       g_startingPosition = '';
       g_allianceColor = '';
       g_alliancePosition = '';
@@ -176,8 +176,8 @@ const styles = StyleSheet.create({
     alignContent: 'center',
   },
   startingPosition: {
-    width: '2.8em',
-    height: '2.8em',
+    width: '3.2em',
+    height: '3.2em',
     margin: 5,
     borderRadius: 'calc(1.5em - 10px)',
     alignContent: 'center',
@@ -199,7 +199,7 @@ const Setup = () => {
   useEffect(() => {
     const resetAll = () => {
       console.log('[Setup] Resetting All Data');
-      setScouterName(''); 
+      // setScouterName(''); 
       setMatchNumber('');
       setAllianceColor(null);
       setStartingPosition(0);
@@ -1284,6 +1284,8 @@ useEffect(() => {
 
   eventEmitter.on("submit", resetAll);
 }, []);
+
+
 
 return (
   <ScrollView style={styles.teleDiv}>

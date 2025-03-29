@@ -3,14 +3,19 @@
     "short_name": "CSPScout",
     "description": "A scouting app for Team 4188 - Columbus Space Program.",
     "start_url": ".",
-    "display": "standalone",
+    "display": "fullscreen",
     "background_color": "#0a0941",
     "theme_color": "#0a0941",
     "icons": [
       {
-        "src": "./apple-touch-icon.png",
+        "src": "./touch-icon-180.png",
         "type": "image/png",
         "sizes": "180x180"
+      },
+      {
+        "src": "./touch-icon-512.png",
+        "type": "image/png",
+        "sizes": "512x512"
       }
     ],
     "ios": {

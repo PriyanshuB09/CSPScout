@@ -1,10 +1,11 @@
 // import { Stack } from "expo-router";
 import 'react-native-gesture-handler';
 import { NavigationContainer, NavigationIndependentTree } from '@react-navigation/native';
-import { createDrawerNavigator } from '@react-navigation/drawer';
+import { createDrawerNavigator, DrawerToggleButton } from '@react-navigation/drawer';
 
+// import './styles/styles.module.css';
 
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Image } from "react-native";
 import { useEffect, useState } from "react";
 import * as FileSystem from 'expo-file-system';
 import { registerServiceWorker, checkForUpdate } from './serviceWorkerRegistration';
@@ -13,6 +14,8 @@ import HomeScreen from './screens/HomeScreen';
 import ScoutScreen from './screens/ScoutScreen';
 import AdminScreen from './screens/AdminScreen';
 import PitScreen from './screens/PitScreen';
+
+import {requestNotificationPermission, sendLocalNotification} from './PushNotify';
 
 const Drawer = createDrawerNavigator();
 
@@ -32,6 +35,26 @@ const styles = StyleSheet.create({
     borderRadius: '5px',
     cursor: 'pointer',
     zIndex: 1000,
+  },
+  notifyBanner: {
+    position: 'fixed',
+    top: 10,
+    right: 10,
+    transform: 'translateX(-50%)',
+    padding: '10px 20px',
+    backgroundColor: '#007BFF',
+    color: '#fff',
+    borderRadius: '5px',
+    cursor: 'pointer',
+    zIndex: 1000,
+  },
+  headerIcon: {
+    inset: 0,
+    height: '100%',
+    opacity: 0,
+    position: 'absolute',
+    width: '100%',
+    zIndex: '-1',
   }
 });
 
@@ -40,6 +63,14 @@ export default function Layout() {
   const [manifest, setManifest] = useState(null);
   const [error, setError] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [iconVisible, setIconVisible] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('visible');
+      setIconVisible(true);
+    }, 100); // Wait for Expo rendering delay
+  }, []);
 
   // Manifest JSON loading
 
@@ -101,11 +132,10 @@ export default function Layout() {
       return <Text>Loading...</Text>;
     }
 
-
   return (
     <NavigationIndependentTree>
       <NavigationContainer>
-      <Drawer.Navigator screenOptions={{
+      <Drawer.Navigator screenOptions={({navigation}) => ({
         drawerStyle: {
           backgroundColor: '#1E1E1E', // Drawer background color
           width: 200, // Custom width
@@ -124,16 +154,35 @@ export default function Layout() {
         headerTintColor: '#FFF',
         headerShown: true,
         headerShadowVisible: false,
-        // headerLeft: undefined,
-      }}>
-      <Drawer.Screen name="Home" component={HomeScreen} />
+        headerRight: () => {
+          console.log('working');
+          return (iconVisible && (
+          <View style={{
+            position: 'fixed',   // 👈 Position it freely
+            left: 0,
+            top: 0,               // 👈 Move it to the left
+            zIndex: 1,              // 👈 Ensure it stays above other content
+          }}>
+            <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
+              <Image
+                source={{ uri: 'https://reefscape.web.app/menuwhite.png' }}
+                style={{ width: 24, height: 24}}
+              />
+            </TouchableOpacity>
+          </View>));
+      },
+      })}>
+      <Drawer.Screen name="Home" component={HomeScreen}/>
       <Drawer.Screen name="Pit Scout" component={PitScreen}/>
       <Drawer.Screen name="Scout" component={ScoutScreen}/>
       <Drawer.Screen name="Admin" component={AdminScreen}/>
       </Drawer.Navigator>
       {updateAvailable && (<Text style={styles.updateBanner} onPress={handleUpdate}>Update</Text>)}
+      <Text style={styles.notifyBanner} onPress={requestNotificationPermission}><Image
+                source={{ uri: 'https://reefscape.web.app/menuwhite.png' }}
+                style={{ width: 24, height: 24, marginLeft: 16}}
+              /></Text>
       </NavigationContainer>
       </NavigationIndependentTree>
-    
   );
 }

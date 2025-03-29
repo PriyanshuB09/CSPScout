@@ -1,9 +1,11 @@
 // service-worker.js
-const CACHE_NAME = 'cspscout-cache-v124';
+const CACHE_NAME = 'cspscout-cache-v2.97';
 const urlsToCache = [
   '/',
   '/index.html',
-  './apple-touch-icon.png'  // Add your app assets here
+  './touch-icon-512.png',
+  '/manifest.json',
+  'toggledrawericon.png'  // Add your app assets here
 ];
 
 // Install event: Cache necessary files
@@ -37,6 +39,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return; // Ignore POST requests
 
+  // Always bypass cache for manifest.json
+  if (event.request.url.includes('manifest.json')) {
+    console.log('[Service Worker] Bypassing cache for manifest.json');
+    event.respondWith(fetch(event.request));  // Always fetch the latest manifest
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -64,4 +73,23 @@ self.addEventListener('message', (event) => {
     console.log('[Service Worker] Skipping waiting and applying update...');
     self.skipWaiting();
   }
+});
+
+// public/service-worker.js
+self.addEventListener('push', (event) => {
+  console.log('Push Event:', event);
+
+  const data = event.data ? event.data.json() : { title: 'Default Title', body: 'Default body' };
+
+  self.registration.showNotification(data.title, {
+    body: data.body,
+    icon: './touch-icon-512.png',  // Add your icon path
+  });
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow('https://reefscape.web.app')  // Replace with your PWA URL
+  );
 });
