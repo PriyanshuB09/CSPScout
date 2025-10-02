@@ -1,7 +1,9 @@
-import { Text, SafeAreaView, StyleSheet, View, Pressable, Button, TouchableOpacity, TouchableHighlight, ListView, ScrollView, Platform } from 'react-native';
+import { Image, Text, ActivityIndicator, SafeAreaView, StyleSheet, View, Pressable, Button, TouchableOpacity, TouchableHighlight, ListView, ScrollView, Platform, Alert } from 'react-native';
 import { TextInput } from "react-native-web";
+import { launchImageLibrary } from 'react-native-image-picker';
 
 import DropDownPicker from 'react-native-dropdown-picker';
+import { uploadToImgbb } from '../ImageUpload';
 
 import * as FIREBASE from '../../firebaseConfig';
 
@@ -119,8 +121,28 @@ const styles = StyleSheet.create({
   }
 });
 
-const g_eventWeAreAt = '2025gasta';
+const imageStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  image: {
+    width: 200,
+    height: 200,
+    marginTop: 10,
+  },
+  link: {
+    marginTop: 10,
+    color: 'blue',
+  },
+});
 
+const g_eventWeAreAt = '2025gacmp';
+
+let k_name = '';
+let k_intakeType = '';
 let k_teamNumber = '';
 let k_drivetrain = '';
 let k_autoMobility = '';
@@ -134,8 +156,9 @@ let k_barge = 'no';
 let k_processor = 'no';
 let k_climbAbility = '';
 let k_notes = '';
+let k_url = '';
 
-const submitPS = (teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor) => {
+const submitPS = (name, teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor, setIntake, setFileUrl) => {
     let reefScoreArr = [];
     if (k_l1 == 'yes') reefScoreArr.push('L1');
     if (k_l2 == 'yes') reefScoreArr.push('L2');
@@ -161,11 +184,14 @@ const submitPS = (teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, s
         algaeScore: algaeScoreStr,
         climbAbility: k_climbAbility,
         event: g_eventWeAreAt,
+        name: name,
+        intakeType: k_intakeType,
+        imageUrl: k_url
     }
 
     FIREBASE.addEmitter().open('pitscout').add(dataObject).commit().then(() => {
         window.alert('[Success] Entry Recorded. Good work Pit Scouter!');
-        resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor);
+        resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor, setIntake, setFileUrl);
         {
             k_autoMobility = '';
             k_autoCapability = '';
@@ -173,11 +199,13 @@ const submitPS = (teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, s
             // k_reefScore = '';
             // k_algaeScore = '';
             k_climbAbility = '';
+            k_intakeType = '';
+            k_url = '';
         }
     });
 }
 
-const resetPS = (setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor) => {
+const resetPS = (setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor, setIntake, setFileUrl) => {
     setTeamNumber('');
     setDrivetrain('');
     setAutoMobility(0);
@@ -191,10 +219,15 @@ const resetPS = (setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapabilit
     setProcessor(false);
     setClimbAbility(0);
     setNotes('');
+    setIntake(0);
+    setFileUrl('');
 }
 
 const PitScreen = () => {
   const [teamNumber, setTeamNumber] = useState('');
+  const [fileUri, setFileUri] = useState(null);
+  const [uploading, setUploading] = useState(false);
+  const [fileUrl, setFileUrl] = useState('');
 
   const [drivetrainChoices, setDrivetrainChoices] = useState([
     {label: 'Swerve', value: 'swerve'},
@@ -218,8 +251,47 @@ const PitScreen = () => {
   const [climbAbility, setClimbAbility] = useState(0);
   const [notes, setNotes] = useState('');
 
+  const [name, setName] = useState('');
+  const [intake, setIntake] = useState(0);
+  
+  const handleFileSelect = () => {
+    console.log('working');
+    Alert.alert('working');
+    launchImageLibrary({ mediaType: 'photo', includeBase64: true }, (response) => {
+      if (!response.didCancel && !response.error) {
+        const asset = response.assets[0];
+        uploadToImgbb(asset.base64).then(data => {
+          setFileUrl(data);
+          k_url = data;
+          console.log(k_url);
+        });
+      }
+    });
+  };
+
+  // const handleUpload = async () => {
+  //   if (fileUri) {
+  //     setUploading(true);
+  //     try {
+  //       const fileData = await uploadToImgbb(fileUri);
+  //       setFileUrl(`https://drive.google.com/uc?id=${fileData.id}`);
+  //       alert('File uploaded successfully!');
+  //     } catch (error) {
+  //       console.error('Error uploading file:', error);
+  //       alert('Failed to upload file.');
+  //     } finally {
+  //       setUploading(false);
+  //     }
+  //   }
+  // };
+
   return (
     <ScrollView style={styles.view}>
+      <View style={styles.teamNumberDiv}>
+        <Text style={styles.teamNumberSpan}>YOUR Name:</Text>
+        <TextInput style={styles.teamNumberInput} placeholder="Name" value={name} onChangeText={text => setName(text)}/>
+      </View>
+
       <View style={styles.teamNumberDiv}>
         <Text style={styles.teamNumberSpan}>Team #:</Text>
         <TextInput style={styles.teamNumberInput} placeholder="Team Number" value={teamNumber} onChangeText={text => setTeamNumber(text)}/>
@@ -229,6 +301,18 @@ const PitScreen = () => {
         <Text style={styles.teamNumberSpan}>Drivetrain:</Text>
         <DropDownPicker open={dropdownOpen} value={drivetrain} items={drivetrainChoices} setOpen={setDropdownOpen} setValue={setDrivetrain} setItems={setDrivetrainChoices} placeholder="Select DT Type" containerStyle={{width: '60%', zIndex: "3000"}} style={styles.drivetrainSelect} dropDownContainerStyle={{ backgroundColor: 'lightblue', zIndex: "3000" }} zIndex={3000}   // Bring dropdown to the front
         zIndexInverse={1000} elevation={3000}/>
+      </View>
+
+      <View style={[styles.questionDiv, {marginTop: "5em"}]}>
+        <Text style={styles.teamNumberSpan}>Ground Intake:</Text>
+        <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.left, (intake != 1) ? styles.deselected : styles.selected]} onPress={() => {
+          setIntake(1);
+          k_intakeType = 'ground';
+        }}><Text style={styles.text}>Yes</Text></TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, (intake != 2) ? styles.deselected : styles.selected]} onPress={() => {
+          setIntake(2);
+          k_intakeType = 'station';
+        }}><Text style={styles.text}>No</Text></TouchableOpacity>
       </View>
 
       <View style={[styles.questionDiv, {marginTop: "5em"}]}>
@@ -357,9 +441,26 @@ const PitScreen = () => {
         <TextInput style={[styles.teamNumberInput, {width: '100%', height: '100%'}]} placeholder="Extra Notes" value={notes} onChangeText={text => setNotes(text)} multiline={true}/>
       </View>
 
-      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Reset</Text></TouchableOpacity>
+      <View style={imageStyles.container}>
+      <Button title="Select Image" onPress={handleFileSelect} />
+      {fileUrl && (
+        <Image source={{ uri: fileUrl }} style={imageStyles.image} />
+      )}
 
-      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => submitPS(teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor)}><Text style={styles.text}>Submit</Text></TouchableOpacity>
+      {/* {uploading ? (
+        <ActivityIndicator size="large" color="#4CAF50" />
+      ) : (
+        <Button title="Upload to Database" onPress={handleUpload} />
+      )} */}
+
+      {(fileUrl != '') ? (
+        <Text style={imageStyles.link}>File URL: {fileUrl}</Text>
+      ) : null}
+    </View>
+
+      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => resetPS(setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor, setIntake, setFileUrl)}><Text style={styles.text}>Reset</Text></TouchableOpacity>
+
+      <TouchableOpacity style={[styles.button, styles.oneOfTwo, styles.right, styles.left, styles.deselected, {marginTop: '1em', marginLeft: 'auto', marginRight: 'auto'}]} onPress={() => submitPS(name, teamNumber, drivetrain, notes, setTeamNumber, setDrivetrain, setAutoMobility, setAutoCapability, setTeleCapability, setClimbAbility, setNotes, setl1, setl2, setl3, setl4, setBarge, setProcessor, setIntake, setFileUrl)}><Text style={styles.text}>Submit</Text></TouchableOpacity>
       
     </ScrollView>
   );

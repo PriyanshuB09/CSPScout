@@ -14,6 +14,7 @@ import HomeScreen from './screens/HomeScreen';
 import ScoutScreen from './screens/ScoutScreen';
 import AdminScreen from './screens/AdminScreen';
 import PitScreen from './screens/PitScreen';
+import ChartScreen from './screens/ChartScreen';
 
 import {requestNotificationPermission, sendLocalNotification} from './PushNotify';
 
@@ -39,9 +40,9 @@ const styles = StyleSheet.create({
   notifyBanner: {
     position: 'fixed',
     top: 10,
-    right: 10,
+    right: 5,
     transform: 'translateX(-50%)',
-    padding: '10px 20px',
+    padding: '5px 10px',
     backgroundColor: '#007BFF',
     color: '#fff',
     borderRadius: '5px',
@@ -64,6 +65,7 @@ export default function Layout() {
   const [error, setError] = useState(null);
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [iconVisible, setIconVisible] = useState(false);
+  const [notifyVisible, setNotifyVisible] = useState(true);
 
   useEffect(() => {
     setTimeout(() => {
@@ -71,6 +73,33 @@ export default function Layout() {
       setIconVisible(true);
     }, 100); // Wait for Expo rendering delay
   }, []);
+
+  useEffect(() => {
+    async function checkPushSubscription() {
+      if (!('serviceWorker' in navigator)) {
+        console.log('Service workers are not supported.');
+        setNotifyVisible(true);
+        return;
+      }
+    
+      const registration = await navigator.serviceWorker.ready;
+    
+      const subscription = await registration.pushManager.getSubscription();
+    
+      if (subscription) {
+        console.log('✅ User is subscribed:', subscription);
+        setNotifyVisible(false);
+        console.log('🔑 Subscription details:', JSON.stringify(subscription));
+      } else {
+        console.log('❌ User is NOT subscribed.');
+        setNotifyVisible(true);
+      }
+    }
+
+    checkPushSubscription();
+  }, []);
+
+
 
   // Manifest JSON loading
 
@@ -159,8 +188,8 @@ export default function Layout() {
           return (iconVisible && (
           <View style={{
             position: 'fixed',   // 👈 Position it freely
-            left: 0,
-            top: 0,               // 👈 Move it to the left
+            left: 7,
+            top: 7,               // 👈 Move it to the left
             zIndex: 1,              // 👈 Ensure it stays above other content
           }}>
             <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
@@ -178,10 +207,10 @@ export default function Layout() {
       <Drawer.Screen name="Admin" component={AdminScreen}/>
       </Drawer.Navigator>
       {updateAvailable && (<Text style={styles.updateBanner} onPress={handleUpdate}>Update</Text>)}
-      <Text style={styles.notifyBanner} onPress={requestNotificationPermission}><Image
-                source={{ uri: 'https://reefscape.web.app/menuwhite.png' }}
-                style={{ width: 24, height: 24, marginLeft: 16}}
-              /></Text>
+      {false && (<Text style={styles.notifyBanner} onPress={() => {
+        requestNotificationPermission();
+        setIconVisible(false);
+        }}>Notify</Text>)}
       </NavigationContainer>
       </NavigationIndependentTree>
   );

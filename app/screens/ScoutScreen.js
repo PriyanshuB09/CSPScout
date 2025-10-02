@@ -1,4 +1,4 @@
-import { Keyboard, Text, SafeAreaView, StyleSheet, View, Pressable, Button, TouchableOpacity, TouchableHighlight, ListView, ScrollView, Platform } from 'react-native';
+import { Keyboard, Text, SafeAreaView, StyleSheet, View, Pressable, Button, TouchableOpacity, TouchableHighlight, ListView, ScrollView, Platform, FlatList } from 'react-native';
 import { TextInput } from "react-native-web";
 
 import { useEffect, useState } from 'react';
@@ -13,7 +13,7 @@ import * as FIREBASE from '../../firebaseConfig';
 const Tab = createMaterialTopTabNavigator();
 const eventEmitter = new EventEmitter();
 
-const eventWeAreAt = '2025gasta';
+const eventWeAreAt = '2025gacmp';
 
 let g_scouterName = '';
 let g_startingPosition = '';
@@ -55,15 +55,48 @@ let g_telePark = '';
 
 let g_notes = '';
 
-const finalSubmit = () => {
+const finalSubmit = (submitted) => {
+  if (submitted) return;
 
-  // if (g_scouterName == '' || g_allianceColor == '' || g_alliancePosition == '' || g_teamNumber == '' || g_matchNumber == '') {
-  //   window.alert('[Error] Must have required fields in setup filled out for entry.');
-  //   return;
-  // }
+  if (g_scouterName == '') {
+    window.alert('[Error] Must have required fields in setup filled out for entry.');
+    return;
+  }
 
   let dataObject = { 
-    g_allianceColor, g_alliancePosition, g_autoBarge, g_autoL1ReefMade, g_autoL1ReefMiss, g_autoL2ReefMade, g_autoL2ReefMiss, g_autoL3ReefMade, g_autoL3ReefMiss, g_autoL4ReefMade, g_autoL4ReefMiss, g_autoMobility, g_autoProcessor, g_matchNumber, g_notes, g_preload, g_scouterName, g_startingPosition, g_teamNumber, g_teleBarge, g_teleL1ReefMade, g_teleL1ReefMiss, g_teleL2ReefMade, g_teleL2ReefMiss, g_teleL3ReefMade, g_teleL3ReefMiss, g_teleL4ReefMade, g_teleL4ReefMiss, g_telePark, g_teleProcessor, g_teleBargeMiss, g_autoBargeMiss
+    g_allianceColor, 
+    g_alliancePosition, 
+    g_autoBarge: Math.abs(g_autoBarge), 
+    g_autoL1ReefMade: Math.abs(g_autoL1ReefMade), 
+    g_autoL1ReefMiss: Math.abs(g_autoL1ReefMiss), 
+    g_autoL2ReefMade: Math.abs(g_autoL2ReefMade), 
+    g_autoL2ReefMiss: Math.abs(g_autoL2ReefMiss),
+    g_autoL3ReefMade: Math.abs(g_autoL3ReefMade), 
+    g_autoL3ReefMiss: Math.abs(g_autoL3ReefMiss), 
+    g_autoL4ReefMade: Math.abs(g_autoL4ReefMade), 
+    g_autoL4ReefMiss: Math.abs(g_autoL4ReefMiss),
+    g_autoMobility, 
+    g_autoProcessor: Math.abs(g_autoProcessor), 
+    g_matchNumber, 
+    g_notes, 
+    g_preload, 
+    g_scouterName, 
+    g_startingPosition, 
+    g_teamNumber, 
+    g_teleBarge: Math.abs(g_teleBarge),
+    g_teleL1ReefMade: Math.abs(g_teleL1ReefMade), 
+    g_teleL1ReefMiss: Math.abs(g_teleL1ReefMiss), 
+    g_teleL2ReefMade: Math.abs(g_teleL2ReefMade),
+    g_teleL2ReefMiss: Math.abs(g_teleL2ReefMiss), 
+    g_teleL3ReefMade: Math.abs(g_teleL3ReefMade), 
+    g_teleL3ReefMiss: Math.abs(g_teleL3ReefMiss), 
+    g_teleL4ReefMade: Math.abs(g_teleL4ReefMade), 
+    g_teleL4ReefMiss: Math.abs(g_teleL4ReefMiss),
+    g_telePark, 
+    g_teleProcessor: Math.abs(g_teleProcessor),
+    g_teleBargeMiss: Math.abs(g_teleBargeMiss),
+    g_autoBargeMiss: Math.abs(g_autoBargeMiss),
+    g_event: eventWeAreAt
   }
   console.log(dataObject);
   FIREBASE.addEmitter().open('matches').add(dataObject).commit().then(() => {
@@ -112,7 +145,7 @@ const finalSubmit = () => {
   });
 }
 
-const updateTeamNumber = (allianceColor, alliancePosition, matchNumber, setTeamNumber) => {
+const updateTeamNumber = (allianceColor, alliancePosition, matchNumber, setTeamNumber, recursive=false) => {
   console.log('[Setup] Team number being updated.');
   if (g_allianceColor == '' || g_alliancePosition == '' || g_matchNumber == '') {
     console.log('Data not filled out');
@@ -128,6 +161,7 @@ const updateTeamNumber = (allianceColor, alliancePosition, matchNumber, setTeamN
       setTeamNumber(teamNumber_);
       g_teamNumber = teamNumber_;
     }
+    if (!recursive) updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber, true);
 });
 }
 
@@ -195,6 +229,45 @@ const Setup = () => {
   const [alliancePosition, setAlliancePosition] = useState(0);
   const [teamNumber, setTeamNumber] = useState('');
   const [preload, setPreload] = useState(0);
+  const OPTIONS = ['Akhil A', 'Alexander R', 'Ansh R', 'Emily N', 'Evaan K', 'Evans C', 'Hayden G', 'Isaac K', 'Ishita M', 'Jack P', 'Joseph C', 'Khang D', 'Krish P', 'Laurence R', 'Liam M', 'Melanie C', 'Nathaniel S', 'Oriana N', 'Priyanshu B', 'Quinn H', 'Reagan N', 'Sam B', 'Sophia C', 'Tam L', 'Tucker J', 'William G', 'Charlotte J', 'Maia P', 'Ian H', 'Eunice K', 'Jacob T', 'Caleb S' ];
+  const [filtered, setFiltered] = useState(OPTIONS);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const handleChange = (input) => {
+    setScouterName(input);
+    g_scouterName = input;
+    console.log('handled change');
+    if (input.length > 0) {
+      const matches = OPTIONS.filter(item => item.toLowerCase().includes(input.toLowerCase()));
+      setFiltered(matches);
+      setShowDropdown(true);
+    } else {
+      setFiltered(OPTIONS);
+      setShowDropdown(false);
+    }
+  };
+
+  const handleSelect = (item) => {
+    console.log('handled select');
+    console.log(item);
+    setScouterName(item);
+    g_scouterName = item;
+    setShowDropdown(false);
+    console.log(scouterName);
+    handleChange(item);
+  }
+
+  const handleBlur = () => {
+    console.log('handled blur');
+    setTimeout(() => {
+    if (!OPTIONS.some((item) => item.trim().toLowerCase() == g_scouterName.trim().toLowerCase())) {
+      setScouterName(""); // Clear invalid input
+      g_scouterName = '';
+    }
+    setShowDropdown(false);
+  }, 10);
+    setTimeout(() => console.log(scouterName), 5000);
+  }
 
   useEffect(() => {
     const resetAll = () => {
@@ -213,7 +286,7 @@ const Setup = () => {
 
   return (
       <ScrollView style={styles.setupDiv}>
-          <View style={styles.containerDiv}>
+          {/* <View style={styles.containerDiv}>
               <Text style={{
                 alignContent: 'center',
                 display: 'flex',
@@ -239,7 +312,59 @@ const Setup = () => {
                 setScouterName(text);
                 g_scouterName = text;
                 }} />
+          </View> */}
+          <View style={styles.containerDiv}>
+              <Text style={{
+                alignContent: 'center',
+                display: 'flex',
+                width: '50%',
+                height: '100%',
+                paddingTop: 'auto',
+                paddingBottom: 'auto',
+                textAlign: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                alignItems: 'center',
+              }}>Scouter Name: </Text>
+              <TextInput style={{
+                  backgroundColor: 'lightblue',
+                  color: 'black',
+                  borderRadius: 'calc(1.5em - 5px)',
+                  boxSizing: 'border-box',
+                  padding: '5px',
+                  width: '50%',
+                  height: '100%',
+                  textAlign: 'center',
+              }} placeholder="Name" value={scouterName} onChangeText={handleChange} onBlur={handleBlur} />
           </View>
+          {showDropdown && (
+                <FlatList
+                  style={{
+                    backgroundColor: "#ccc",
+                    marginTop: 2,
+                    borderRadius: 5,
+                    maxHeight: 100,
+                    boxSizing: "border-box",
+                    padding: 5
+                  }}
+                  data={filtered}
+                  keyboardShouldPersistTaps="handled"
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => handleSelect(item)} style={{
+                      padding: 10,
+                      borderBottomWidth: 1,
+                      borderBottomColor: "#eee",
+                      width: '100%',
+                    }}>
+                      <Text style={{
+                        margin: 'auto',
+                        fontSize: 18
+                      }}>{item}</Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              )}
           <View style={styles.containerDiv}>
             <View style={{
               display: 'flex',
@@ -411,6 +536,9 @@ const Setup = () => {
                 setAlliancePosition(1);
                 g_alliancePosition = '1';
                 updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
+                setAlliancePosition(1);
+                g_alliancePosition = '1';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
               }}><Text style={{
                 textAlign: 'center',
                 alignContent: 'center',
@@ -426,6 +554,9 @@ const Setup = () => {
                 setAlliancePosition(2);
                 g_alliancePosition = '2';
                 updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
+                setAlliancePosition(2);
+                g_alliancePosition = '2';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
               }}><Text style={{
                 textAlign: 'center',
                 alignContent: 'center',
@@ -438,6 +569,9 @@ const Setup = () => {
                 height: "2em",
                 borderRadius: '50%',
               }, (alliancePosition != 3) ? {backgroundColor: 'grey'} : {backgroundColor: 'lightgrey'}]} onPress={() => {
+                setAlliancePosition(3);
+                g_alliancePosition = '3';
+                updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
                 setAlliancePosition(3);
                 g_alliancePosition = '3';
                 updateTeamNumber(allianceColor, alliancePosition, matchNumber, setTeamNumber);
@@ -1566,8 +1700,9 @@ return (
 );
 }
 
-const Notes = () => {
+const Notes = ({ navigation }) => {
 const [notes, setNotes] = useState('');
+const [submitted, setSubmitted] = useState(false);
 
 useEffect(() => {
   const resetAll = () => {
@@ -1603,7 +1738,11 @@ return (
       padding: 10,
       borderRadius: '2em',
       backgroundColor: 'lightblue'
-    }} onPress={finalSubmit}><Text style={{
+    }} onPress={() => {
+      finalSubmit(submitted);
+      setSubmitted(false);
+      navigation.navigate('Setup');
+    }}><Text style={{
       textAlign: 'center',
       alignContent: 'center',
       alignItems: 'center',

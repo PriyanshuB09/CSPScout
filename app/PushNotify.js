@@ -42,7 +42,8 @@ const requestNotificationPermission = async () => {
   
       registration.showNotification(header, {
         body: body,
-        icon: '/icon.png',  // Add your own icon
+        icon: '/icon.png',
+        vibrate: [100, 50, 100]  // Add your own icon
       });
     }
   };
